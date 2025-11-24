@@ -24,7 +24,7 @@ const AuthLayout = () => {
                   </TabsContent>
                   {/* ---------------------------register------------------------------------- */}
                   <TabsContent value="register">
-                      <RegisterForm />
+            <RegisterForm onSuccess={ () => setActiveTab("login")} />
                   </TabsContent>
 
               </Tabs>

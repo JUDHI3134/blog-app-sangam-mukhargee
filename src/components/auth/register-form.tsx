@@ -6,6 +6,8 @@ import {z} from "zod"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
+import { signUp } from "@/lib/auth-client"
+import { toast } from "sonner"
 
 const registerSchema = z.object({
     name: z.string().min(3, "Name must be atleast 3 characters long"),
@@ -19,7 +21,11 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>
 
-const RegisterForm = () => {
+interface RegisterFormProps{
+    onSuccess?: () => void
+}
+
+const RegisterForm = ({onSuccess} : RegisterFormProps) => {
 
     const [isLoading, setIsLoading] = useState(false)
 
@@ -36,9 +42,26 @@ const RegisterForm = () => {
     const onRegisterSubmit = async (values: RegisterFormValues) => {
         setIsLoading(true);
         try {
-            console.log(values)
+            const { error } = await signUp.email({
+                name: values.name,
+                email: values.email,
+                password: values.password
+            })
+
+            if (error) {
+                toast.error('Failed to create account... try again');
+                return
+            }
+            toast.success("Account has been created successfully. Please sign in with email and password");
+
+            if (onSuccess) {
+                onSuccess()
+            }
+
         } catch (error) {
-            
+            console.log(error)
+        } finally {
+            setIsLoading(false);
         }
     }
 
