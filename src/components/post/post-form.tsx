@@ -7,7 +7,7 @@ import { Button } from "../ui/button"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { startTransition, useTransition } from "react"
-import { createPost } from "@/actions/post-actions"
+import { createPost, updatePost } from "@/actions/post-actions"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -18,10 +18,21 @@ const postSchema = z.object({
     content: z.string().min(10,'Description must be atleast 10 characters long'),
 })
 
+interface PostFormProps{
+    isEditing?: boolean,
+    post?: {
+        id: number,
+        title: string,
+        description: string,
+        content: string,
+        slug: string
+    }
+}
+
 type PostFormValues = z.infer<typeof postSchema>
 
 
-const PostForm = () => {
+const PostForm = ({isEditing, post} : PostFormProps) => {
 
     const router = useRouter()
 
@@ -29,7 +40,14 @@ const PostForm = () => {
 
     const {register, handleSubmit, formState: {errors} } = useForm<PostFormValues>({
         resolver: zodResolver(postSchema),
-        defaultValues: {
+        defaultValues: isEditing && post ?
+            {
+            title: post.title,
+            description: post.description,
+            content: post.content
+        }
+            :
+            {
             title: '',
             description: '',
             content: ''
@@ -46,15 +64,20 @@ const PostForm = () => {
 
                 let res;
 
-                res = await createPost(formData);
+                if (isEditing && post) {
+                    res = await updatePost(post.id, formData)
+                } else {
+                    res = await createPost(formData);
+                    
+                }
                 console.log("res", res)
 
                 if (res.success) {
-                    toast("Post created successfully");
+                    toast( isEditing ?"Post Editted successfully" : "Post created successfully");
                     router.refresh()
                     router.push("/")
                 } else {
-                    toast(res.mesaage)
+                    toast(res.message)
                 }
 
             } catch (error) {
@@ -81,7 +104,7 @@ const PostForm = () => {
                {errors?.content && <p className="text-sm text-red-700">{ errors.content.message}</p> }
           </div>
           <Button disabled={isPending} type="submit" className="w-full mt-5">
-              { isPending ? "Saving...": 'Create Post'}
+              { isPending ? "Saving...": isEditing ? "Update Post" : 'Create Post'}
           </Button>
     </form>
   )

@@ -1,10 +1,47 @@
+import Container from '@/components/layout/container';
+import PostForm from '@/components/post/post-form';
+import { auth } from '@/lib/auth';
+import { getPostBySlug } from '@/lib/db/queries';
+import { headers } from 'next/headers';
+import { notFound, redirect } from 'next/navigation';
 import React from 'react'
 
-const EditPostPage = () => {
+const EditPostPage = async({ params }: { params: Promise<{ slug: string }> }) => {
+
+  const { slug } = await params;
+
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
+  if (!session || !session.user) {
+    redirect("/")
+  }
+
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
+    notFound()
+  }
+
+  if (post.authorId !== session.user.id) {
+    redirect("/")
+  }
+
   return (
-    <div>
-      post EditPostPage
-    </div>
+    <Container className='max-w-lg'>
+      <h1 className='text-2xl font-bold mt-10 text-center mb-6'>Edit page</h1>
+      <PostForm
+        isEditing={true}
+        post={{
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          content: post.content,
+          slug: post.slug
+        }}
+      />
+    </Container>
   )
 }
 
