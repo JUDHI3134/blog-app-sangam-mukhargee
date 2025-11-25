@@ -7,7 +7,7 @@ const PostCard = ({post}: PostCardProps) => {
   return (
     <Card className='h-full flex flex-col'>
           <CardHeader>
-              <Link className='hover:underline' href={`/post/${post.id}`}>
+              <Link className='hover:underline' href={`/post/${post.slug}`}>
                   <CardTitle className='text-2xl font-semibold'>{ post.title}</CardTitle>
               </Link>
               <CardDescription>
